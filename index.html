@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PDF Library</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink: #1a1814;
+    --ink-2: #3d3a34;
+    --ink-3: #7a7670;
+    --paper: #f7f4ef;
+    --paper-2: #edeae3;
+    --paper-3: #e2ddd5;
+    --accent: #2c5f8a;
+    --accent-light: #ddeaf5;
+    --accent-dark: #1a3f5e;
+    --gold: #c49a2a;
+    --gold-light: #fdf6e3;
+    --danger: #8b2020;
+    --radius: 6px;
+    --shadow: 0 2px 8px rgba(26,24,20,0.08);
+    --shadow-lg: 0 4px 20px rgba(26,24,20,0.12);
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  /* ── Header ── */
+  header {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 0 2rem;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 60px;
+    border-bottom: 3px solid var(--gold);
+  }
+
+  .logo {
+    font-family: 'Lora', serif;
+    font-size: 1.3rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    color: var(--paper);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .logo svg { width: 22px; height: 22px; fill: var(--gold); flex-shrink: 0; }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  #book-count {
+    font-size: 13px;
+    color: #9e9b95;
+  }
+
+  /* ── Hero ── */
+  .hero {
+    background: var(--ink-2);
+    color: var(--paper);
+    padding: 3rem 2rem 2.5rem;
+    text-align: center;
+    border-bottom: 1px solid #2e2b25;
+  }
+
+  .hero h1 {
+    font-family: 'Lora', serif;
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    margin-bottom: 0.5rem;
+  }
+
+  .hero p {
+    color: #a09c96;
+    font-size: 0.95rem;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+
+  /* ── Search & Filters ── */
+  .controls {
+    background: var(--paper-2);
+    border-bottom: 1px solid var(--paper-3);
+    padding: 1.25rem 2rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    position: sticky;
+    top: 60px;
+    z-index: 90;
+  }
+
+  .search-wrap {
+    position: relative;
+    flex: 1;
+    min-width: 200px;
+    max-width: 340px;
+  }
+
+  .search-wrap svg {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    stroke: var(--ink-3);
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    pointer-events: none;
+  }
+
+  #search {
+    width: 100%;
+    padding: 8px 12px 8px 34px;
+    border: 1px solid var(--paper-3);
+    border-radius: var(--radius);
+    background: white;
+    font-size: 14px;
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  #search:focus { border-color: var(--accent); }
+
+  select {
+    padding: 8px 28px 8px 10px;
+    border: 1px solid var(--paper-3);
+    border-radius: var(--radius);
+    background: white url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237a7670' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") no-repeat right 8px center;
+    -webkit-appearance: none;
+    appearance: none;
+    font-size: 14px;
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.15s;
+    min-width: 130px;
+  }
+
+  select:focus { border-color: var(--accent); }
+
+  .filter-label {
+    font-size: 13px;
+    color: var(--ink-3);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  #clear-btn {
+    padding: 8px 14px;
+    background: transparent;
+    border: 1px solid var(--paper-3);
+    border-radius: var(--radius);
+    font-size: 13px;
+    color: var(--ink-3);
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  #clear-btn:hover { border-color: var(--danger); color: var(--danger); background: #fff5f5; }
+
+  /* ── Sort bar ── */
+  .sort-bar {
+    padding: 0.6rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    background: var(--paper);
+    border-bottom: 1px solid var(--paper-3);
+  }
+
+  #result-info {
+    font-size: 13px;
+    color: var(--ink-3);
+  }
+
+  .sort-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--ink-3);
+  }
+
+  .sort-wrap select {
+    min-width: 100px;
+    font-size: 13px;
+    padding: 5px 26px 5px 8px;
+  }
+
+  /* ── Grid ── */
+  .main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1.5rem 2rem 4rem;
+  }
+
+  #grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1.25rem;
+  }
+
+  /* ── Book Card ── */
+  .book-card {
+    background: white;
+    border: 1px solid var(--paper-3);
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: box-shadow 0.2s, transform 0.2s;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .book-card:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+  }
+
+  .book-spine {
+    height: 8px;
+    background: var(--accent);
+  }
+
+  .book-body {
+    padding: 1.1rem 1.1rem 0.9rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .book-title {
+    font-family: 'Lora', serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--ink);
+  }
+
+  .book-author {
+    font-size: 0.82rem;
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  .book-meta {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+  }
+
+  .meta-pill {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    background: var(--paper-2);
+    color: var(--ink-2);
+    white-space: nowrap;
+  }
+
+  .meta-pill.year { background: var(--gold-light); color: #7a5a10; }
+  .meta-pill.pub { background: var(--accent-light); color: var(--accent-dark); }
+
+  .book-cats {
+    margin-top: auto;
+    padding-top: 8px;
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+  }
+
+  .cat-tag {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    border: 1px solid #d0cac2;
+    color: var(--ink-3);
+    background: transparent;
+  }
+
+  .book-footer {
+    border-top: 1px solid var(--paper-2);
+    padding: 0.6rem 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--accent);
+    font-weight: 500;
+    background: var(--paper);
+  }
+
+  .book-footer svg {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+  }
+
+  /* ── Spine color variants based on category ── */
+  .spine-0 { background: #2c5f8a; }
+  .spine-1 { background: #4a7c59; }
+  .spine-2 { background: #7a3f6e; }
+  .spine-3 { background: #c49a2a; }
+  .spine-4 { background: #8b2020; }
+  .spine-5 { background: #2a6e7a; }
+  .spine-6 { background: #5e3b8a; }
+  .spine-7 { background: #7a5a10; }
+
+  /* ── States ── */
+  .state-box {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--ink-3);
+  }
+
+  .state-box svg {
+    width: 48px;
+    height: 48px;
+    stroke: var(--paper-3);
+    fill: none;
+    stroke-width: 1.5;
+    margin-bottom: 1rem;
+  }
+
+  .state-box p { font-size: 0.9rem; margin-top: 0.4rem; }
+  .state-box strong { color: var(--ink-2); font-size: 1rem; }
+
+  .spinner {
+    width: 36px;
+    height: 36px;
+    border: 3px solid var(--paper-3);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 1rem;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Error banner ── */
+  #error-banner {
+    display: none;
+    background: #fff5f5;
+    border: 1px solid #fcc;
+    color: var(--danger);
+    padding: 1rem 2rem;
+    font-size: 14px;
+    text-align: center;
+  }
+
+  /* ── Config Modal ── */
+  #config-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(26,24,20,0.6);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+
+  #config-modal.open { display: flex; }
+
+  .modal-box {
+    background: white;
+    border-radius: 10px;
+    padding: 2rem;
+    width: 100%;
+    max-width: 500px;
+    box-shadow: var(--shadow-lg);
+  }
+
+  .modal-box h2 {
+    font-family: 'Lora', serif;
+    font-size: 1.2rem;
+    margin-bottom: 0.4rem;
+    color: var(--ink);
+  }
+
+  .modal-box p { font-size: 13px; color: var(--ink-3); margin-bottom: 1.25rem; }
+
+  .modal-box label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink-2);
+    margin-bottom: 4px;
+  }
+
+  .modal-box input {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1px solid var(--paper-3);
+    border-radius: var(--radius);
+    font-size: 14px;
+    font-family: 'Inter', sans-serif;
+    outline: none;
+    margin-bottom: 1rem;
+    transition: border-color 0.15s;
+  }
+
+  .modal-box input:focus { border-color: var(--accent); }
+
+  .modal-footer {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 0.5rem;
+  }
+
+  .btn {
+    padding: 9px 20px;
+    border-radius: var(--radius);
+    font-size: 14px;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    border: none;
+    font-weight: 500;
+    transition: opacity 0.15s;
+  }
+
+  .btn:hover { opacity: 0.85; }
+  .btn-primary { background: var(--accent); color: white; }
+  .btn-ghost { background: var(--paper-2); color: var(--ink-2); }
+
+  .hint {
+    font-size: 12px;
+    color: var(--ink-3);
+    margin-top: -0.6rem;
+    margin-bottom: 1rem;
+  }
+
+  /* ── Config gear ── */
+  #config-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: #9e9b95;
+    display: flex;
+    align-items: center;
+    padding: 4px;
+    border-radius: 4px;
+    transition: color 0.15s;
+  }
+
+  #config-btn:hover { color: var(--paper); }
+  #config-btn svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+
+  /* ── Responsive ── */
+  @media (max-width: 600px) {
+    .controls { padding: 1rem; }
+    .main { padding: 1rem 1rem 3rem; }
+    header { padding: 0 1rem; }
+    .hero { padding: 2rem 1rem; }
+    .sort-bar { padding: 0.6rem 1rem; }
+    #grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 0.9rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Config Modal -->
+<div id="config-modal">
+  <div class="modal-box">
+    <h2>Connect your Google Sheet</h2>
+    <p>Paste the Sheet ID from your Google Sheets URL. The sheet must be publicly accessible (Share → Anyone with the link).</p>
+    <label for="sheet-id-input">Google Sheet ID</label>
+    <input id="sheet-id-input" type="text" placeholder="e.g. 1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms" />
+    <p class="hint">Found in the URL: docs.google.com/spreadsheets/d/<strong>SHEET_ID</strong>/edit</p>
+    <label for="sheet-name-input">Sheet tab name (optional)</label>
+    <input id="sheet-name-input" type="text" placeholder="Sheet1" />
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="modal-cancel">Cancel</button>
+      <button class="btn btn-primary" id="modal-save">Load Library</button>
+    </div>
+  </div>
+</div>
+
+<!-- Header -->
+<header>
+  <div class="logo">
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+    </svg>
+    PDF Library
+  </div>
+  <div class="header-right">
+    <span id="book-count"></span>
+    <button id="config-btn" title="Connect Google Sheet">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
+  </div>
+</header>
+
+<!-- Hero -->
+<div class="hero">
+  <h1>The Library</h1>
+  <p>Browse, filter, and read books from the collection</p>
+</div>
+
+<!-- Error Banner -->
+<div id="error-banner"></div>
+
+<!-- Controls -->
+<div class="controls">
+  <div class="search-wrap">
+    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input id="search" type="search" placeholder="Search by title or author…" />
+  </div>
+  <span class="filter-label">Filter:</span>
+  <select id="filter-year"><option value="">All years</option></select>
+  <select id="filter-pub"><option value="">All publishers</option></select>
+  <select id="filter-cat1"><option value="">All categories</option></select>
+  <select id="filter-cat2"><option value="">All sub-categories</option></select>
+  <button id="clear-btn">✕ Clear</button>
+</div>
+
+<!-- Sort bar -->
+<div class="sort-bar">
+  <span id="result-info">Loading…</span>
+  <div class="sort-wrap">
+    Sort by:
+    <select id="sort-by">
+      <option value="title">Title</option>
+      <option value="author">Author</option>
+      <option value="year">Year</option>
+    </select>
+  </div>
+</div>
+
+<!-- Main grid -->
+<div class="main">
+  <div id="grid">
+    <div class="state-box">
+      <div class="spinner"></div>
+      <strong>Loading library…</strong>
+      <p>Connecting to Google Sheets</p>
+    </div>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = 'pdf_lib_sheet';
+const SPINE_COLORS = 8;
+
+let allBooks = [];
+let categories1 = new Set();
+let categories2 = new Set();
+let publishers = new Set();
+let years = new Set();
+
+// ── Config persistence ──
+function getSaved() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; } catch { return {}; }
+}
+function saveConfig(id, name) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({ id, name }));
+}
+
+// ── Show/hide modal ──
+function openModal() {
+  const saved = getSaved();
+  document.getElementById('sheet-id-input').value = saved.id || '';
+  document.getElementById('sheet-name-input').value = saved.name || '';
+  document.getElementById('config-modal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('config-modal').classList.remove('open');
+}
+
+document.getElementById('config-btn').addEventListener('click', openModal);
+document.getElementById('modal-cancel').addEventListener('click', closeModal);
+document.getElementById('config-modal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeModal();
+});
+
+document.getElementById('modal-save').addEventListener('click', () => {
+  const id = document.getElementById('sheet-id-input').value.trim();
+  const name = document.getElementById('sheet-name-input').value.trim() || 'Sheet1';
+  if (!id) { alert('Please enter a Sheet ID.'); return; }
+  saveConfig(id, name);
+  closeModal();
+  fetchSheet(id, name);
+});
+
+// ── Fetch from Google Sheets JSON API ──
+async function fetchSheet(sheetId, sheetName) {
+  showLoading();
+  hideError();
+
+  const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
+
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const text = await res.text();
+
+    // Strip Google's JSONP wrapper
+    const json = JSON.parse(text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/)[1]);
+
+    if (json.status === 'error') throw new Error(json.errors?.[0]?.message || 'Sheet error');
+
+    const rows = json.table.rows;
+    allBooks = rows
+      .map((row, i) => {
+        const c = row.c || [];
+        const val = (idx) => (c[idx] && c[idx].v != null) ? String(c[idx].v).trim() : '';
+        return {
+          id: i,
+          title: val(0),
+          author: val(1),
+          year: val(2),
+          publisher: val(3),
+          cat1: val(4),
+          cat2: val(5),
+          url: val(6),   // Column G — Terabox URL
+        };
+      })
+      .filter(b => b.title); // skip rows with no title
+
+    // Skip header row if first row looks like a header
+    if (allBooks.length && allBooks[0].title.toLowerCase().includes('book')) {
+      const first = allBooks[0];
+      if (['book name','title','book'].includes(first.title.toLowerCase())) {
+        allBooks.shift();
+      }
+    }
+
+    buildFilters();
+    renderGrid(allBooks);
+    updateCount(allBooks.length, allBooks.length);
+
+  } catch (err) {
+    showError(`Could not load the sheet: ${err.message}. Make sure it's shared publicly and the Sheet ID is correct.`);
+    showEmpty('Could not load library', 'Check the Sheet ID and make sure sharing is set to "Anyone with the link".');
+  }
+}
+
+// ── Build filter dropdowns ──
+function buildFilters() {
+  categories1.clear(); categories2.clear(); publishers.clear(); years.clear();
+
+  allBooks.forEach(b => {
+    if (b.cat1) categories1.add(b.cat1);
+    if (b.cat2) categories2.add(b.cat2);
+    if (b.publisher) publishers.add(b.publisher);
+    if (b.year) years.add(b.year);
+  });
+
+  fillSelect('filter-year', [...years].sort((a, b) => b - a));
+  fillSelect('filter-pub', [...publishers].sort());
+  fillSelect('filter-cat1', [...categories1].sort());
+  fillSelect('filter-cat2', [...categories2].sort());
+}
+
+function fillSelect(id, values) {
+  const sel = document.getElementById(id);
+  const firstOpt = sel.options[0];
+  sel.innerHTML = '';
+  sel.appendChild(firstOpt);
+  values.forEach(v => {
+    const o = document.createElement('option');
+    o.value = v; o.textContent = v;
+    sel.appendChild(o);
+  });
+}
+
+// ── Filtering & sorting ──
+function getFiltered() {
+  const q = document.getElementById('search').value.toLowerCase().trim();
+  const year = document.getElementById('filter-year').value;
+  const pub = document.getElementById('filter-pub').value;
+  const cat1 = document.getElementById('filter-cat1').value;
+  const cat2 = document.getElementById('filter-cat2').value;
+  const sort = document.getElementById('sort-by').value;
+
+  let books = allBooks.filter(b => {
+    if (q && !b.title.toLowerCase().includes(q) && !b.author.toLowerCase().includes(q)) return false;
+    if (year && b.year !== year) return false;
+    if (pub && b.publisher !== pub) return false;
+    if (cat1 && b.cat1 !== cat1) return false;
+    if (cat2 && b.cat2 !== cat2) return false;
+    return true;
+  });
+
+  books.sort((a, b) => {
+    if (sort === 'year') return (b.year || '0').localeCompare(a.year || '0');
+    if (sort === 'author') return a.author.localeCompare(b.author);
+    return a.title.localeCompare(b.title);
+  });
+
+  return books;
+}
+
+// ── Spine color from category ──
+const colorMap = {};
+let colorIdx = 0;
+function spineColor(cat) {
+  if (!cat) return 0;
+  if (colorMap[cat] === undefined) colorMap[cat] = colorIdx++ % SPINE_COLORS;
+  return colorMap[cat];
+}
+
+// ── Render ──
+function renderGrid(books) {
+  const grid = document.getElementById('grid');
+
+  if (!books.length) {
+    showEmpty('No books found', 'Try adjusting your search or filters.');
+    return;
+  }
+
+  grid.innerHTML = books.map(b => {
+    const sc = spineColor(b.cat1);
+    const href = b.url ? b.url : '#';
+    const target = b.url ? 'target="_blank" rel="noopener"' : '';
+
+    return `
+    <a class="book-card" href="${escHtml(href)}" ${target} title="${escHtml(b.title)}">
+      <div class="book-spine spine-${sc}"></div>
+      <div class="book-body">
+        <div class="book-title">${escHtml(b.title)}</div>
+        ${b.author ? `<div class="book-author">${escHtml(b.author)}</div>` : ''}
+        <div class="book-meta">
+          ${b.year ? `<span class="meta-pill year">${escHtml(b.year)}</span>` : ''}
+          ${b.publisher ? `<span class="meta-pill pub">${escHtml(b.publisher)}</span>` : ''}
+        </div>
+        ${(b.cat1 || b.cat2) ? `
+        <div class="book-cats">
+          ${b.cat1 ? `<span class="cat-tag">${escHtml(b.cat1)}</span>` : ''}
+          ${b.cat2 ? `<span class="cat-tag">${escHtml(b.cat2)}</span>` : ''}
+        </div>` : ''}
+      </div>
+      <div class="book-footer">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        ${b.url ? 'Open PDF' : 'No link yet'}
+      </div>
+    </a>`;
+  }).join('');
+}
+
+function updateCount(shown, total) {
+  const el = document.getElementById('result-info');
+  const bookEl = document.getElementById('book-count');
+  if (shown === total) {
+    el.textContent = `${total} book${total !== 1 ? 's' : ''}`;
+    bookEl.textContent = `${total} books`;
+  } else {
+    el.textContent = `${shown} of ${total} books`;
+    bookEl.textContent = `${total} books`;
+  }
+}
+
+function applyFilters() {
+  if (!allBooks.length) return;
+  const filtered = getFiltered();
+  renderGrid(filtered);
+  updateCount(filtered.length, allBooks.length);
+}
+
+// ── State helpers ──
+function showLoading() {
+  document.getElementById('grid').innerHTML = `
+    <div class="state-box">
+      <div class="spinner"></div>
+      <strong>Loading library…</strong>
+      <p>Fetching books from Google Sheets</p>
+    </div>`;
+  document.getElementById('result-info').textContent = 'Loading…';
+  document.getElementById('book-count').textContent = '';
+}
+
+function showEmpty(title, msg) {
+  document.getElementById('grid').innerHTML = `
+    <div class="state-box">
+      <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      <strong>${escHtml(title)}</strong>
+      <p>${escHtml(msg)}</p>
+    </div>`;
+  document.getElementById('result-info').textContent = '0 books';
+}
+
+function showError(msg) {
+  const el = document.getElementById('error-banner');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+function hideError() {
+  document.getElementById('error-banner').style.display = 'none';
+}
+
+function escHtml(str) {
+  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Event listeners ──
+['search','filter-year','filter-pub','filter-cat1','filter-cat2','sort-by'].forEach(id => {
+  document.getElementById(id).addEventListener('input', applyFilters);
+  document.getElementById(id).addEventListener('change', applyFilters);
+});
+
+document.getElementById('clear-btn').addEventListener('click', () => {
+  document.getElementById('search').value = '';
+  ['filter-year','filter-pub','filter-cat1','filter-cat2','sort-by'].forEach(id => {
+    document.getElementById(id).selectedIndex = 0;
+  });
+  applyFilters();
+});
+
+// ── Init ──
+const saved = getSaved();
+if (saved.id) {
+  fetchSheet(saved.id, saved.name || 'Sheet1');
+} else {
+  showEmpty('Welcome to the Library', 'Click the ⚙ gear icon to connect your Google Sheet.');
+  document.getElementById('result-info').textContent = 'No sheet connected';
+  setTimeout(openModal, 600);
+}
+</script>
+</body>
+</html>
