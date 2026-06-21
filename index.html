@@ -265,12 +265,28 @@
     gap: 6px;
   }
 
+  .book-title-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
   .book-title {
     font-family: 'Lora', serif;
     font-size: 0.95rem;
     font-weight: 600;
     line-height: 1.4;
     color: var(--ink);
+  }
+
+  .book-title-native {
+    font-size: 0.88rem;
+    font-weight: 500;
+    line-height: 1.4;
+    color: var(--ink-3);
+    border-left: 2px solid var(--gold);
+    padding-left: 7px;
+    margin-top: 1px;
   }
 
   .book-author {
@@ -651,13 +667,14 @@ async function fetchSheet(sheetId, sheetName) {
         const val = (idx) => (c[idx] && c[idx].v != null) ? String(c[idx].v).trim() : '';
         return {
           id: i,
-          title: val(0),
-          author: val(1),
-          year: val(2),
-          publisher: val(3),
-          cat1: val(4),
-          cat2: val(5),
-          url: val(6),   // Column G — Terabox URL
+          title: val(0),   // Column A — Book Name
+          title1: val(1),  // Column B — Book Name1 (native language)
+          author: val(2),  // Column C — Author Name
+          year: val(3),    // Column D — Year
+          publisher: val(4), // Column E — Publishing House
+          cat1: val(5),    // Column F — Category1
+          cat2: val(6),    // Column G — Category2
+          url: val(7),     // Column H — Terabox URL
         };
       })
       .filter(b => b.title); // skip rows with no title
@@ -719,7 +736,7 @@ function getFiltered() {
   const sort = document.getElementById('sort-by').value;
 
   let books = allBooks.filter(b => {
-    if (q && !b.title.toLowerCase().includes(q) && !b.author.toLowerCase().includes(q)) return false;
+    if (q && !b.title.toLowerCase().includes(q) && !b.title1.toLowerCase().includes(q) && !b.author.toLowerCase().includes(q)) return false;
     if (year && b.year !== year) return false;
     if (pub && b.publisher !== pub) return false;
     if (cat1 && b.cat1 !== cat1) return false;
@@ -763,7 +780,10 @@ function renderGrid(books) {
     <a class="book-card" href="${escHtml(href)}" ${target} title="${escHtml(b.title)}">
       <div class="book-spine spine-${sc}"></div>
       <div class="book-body">
-        <div class="book-title">${escHtml(b.title)}</div>
+        <div class="book-title-wrap">
+          <div class="book-title">${escHtml(b.title)}</div>
+          ${b.title1 ? `<div class="book-title-native">${escHtml(b.title1)}</div>` : ''}
+        </div>
         ${b.author ? `<div class="book-author">${escHtml(b.author)}</div>` : ''}
         <div class="book-meta">
           ${b.year ? `<span class="meta-pill year">${escHtml(b.year)}</span>` : ''}
