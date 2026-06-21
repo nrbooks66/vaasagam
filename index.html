@@ -488,21 +488,156 @@
     margin-bottom: 1rem;
   }
 
-  /* ── Config gear ── */
-  #config-btn {
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    color: #9e9b95;
+  #config-btn { display: none; } /* hidden by default, shown only for admin */
+
+  /* ── PDF Side Panel ── */
+  #pdf-panel {
+    position: fixed;
+    top: 0;
+    right: -100%;
+    width: min(520px, 100vw);
+    height: 100vh;
+    background: white;
+    box-shadow: -4px 0 24px rgba(26,24,20,0.18);
+    z-index: 300;
     display: flex;
-    align-items: center;
-    padding: 4px;
-    border-radius: 4px;
-    transition: color 0.15s;
+    flex-direction: column;
+    transition: right 0.3s cubic-bezier(0.4,0,0.2,1);
   }
 
-  #config-btn:hover { color: var(--paper); }
-  #config-btn svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+  #pdf-panel.open { right: 0; }
+
+  .panel-header {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 0.75rem 1rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    border-bottom: 3px solid var(--gold);
+    flex-shrink: 0;
+  }
+
+  .panel-title-wrap {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .panel-title {
+    font-family: 'Lora', serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    line-height: 1.3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .panel-title-native {
+    font-size: 0.82rem;
+    color: var(--gold);
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .panel-author {
+    font-size: 0.78rem;
+    color: #9e9b95;
+    margin-top: 2px;
+  }
+
+  .panel-actions {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  .panel-btn {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: var(--paper);
+    border-radius: 4px;
+    padding: 5px 10px;
+    font-size: 12px;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+    transition: background 0.15s;
+    text-decoration: none;
+  }
+
+  .panel-btn:hover { background: rgba(255,255,255,0.2); }
+  .panel-btn svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; }
+
+  .panel-btn.close-btn {
+    padding: 5px 8px;
+    font-size: 16px;
+    line-height: 1;
+    border-color: rgba(255,255,255,0.2);
+  }
+
+  #pdf-frame {
+    flex: 1;
+    width: 100%;
+    border: none;
+    background: #525659;
+  }
+
+  .panel-fallback {
+    flex: 1;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 2rem;
+    text-align: center;
+    background: var(--paper);
+  }
+
+  .panel-fallback svg {
+    width: 48px;
+    height: 48px;
+    stroke: var(--paper-3);
+    fill: none;
+    stroke-width: 1.5;
+  }
+
+  .panel-fallback p { font-size: 0.88rem; color: var(--ink-3); }
+  .panel-fallback a {
+    padding: 9px 20px;
+    background: var(--accent);
+    color: white;
+    border-radius: var(--radius);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  /* overlay dim when panel open */
+  #panel-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(26,24,20,0.35);
+    z-index: 299;
+  }
+
+  #panel-overlay.open { display: block; }
+
+  /* shrink grid when panel open on wide screens */
+  @media (min-width: 900px) {
+    body.panel-open .main { margin-right: min(520px, 100vw); }
+    body.panel-open .controls { padding-right: calc(min(520px,100vw) + 2rem); }
+    body.panel-open .sort-bar { padding-right: calc(min(520px,100vw) + 2rem); }
+    #panel-overlay.open { display: none; } /* no dim on wide — panel sits beside */
+  }
 
   /* ── Responsive ── */
   @media (max-width: 600px) {
@@ -517,23 +652,6 @@
 </head>
 <body>
 
-<!-- Config Modal -->
-<div id="config-modal">
-  <div class="modal-box">
-    <h2>Connect your Google Sheet</h2>
-    <p>Paste the Sheet ID from your Google Sheets URL. The sheet must be publicly accessible (Share → Anyone with the link).</p>
-    <label for="sheet-id-input">Google Sheet ID</label>
-    <input id="sheet-id-input" type="text" placeholder="e.g. 1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms" />
-    <p class="hint">Found in the URL: docs.google.com/spreadsheets/d/<strong>SHEET_ID</strong>/edit</p>
-    <label for="sheet-name-input">Sheet tab name (optional)</label>
-    <input id="sheet-name-input" type="text" placeholder="Sheet1" />
-    <div class="modal-footer">
-      <button class="btn btn-ghost" id="modal-cancel">Cancel</button>
-      <button class="btn btn-primary" id="modal-save">Load Library</button>
-    </div>
-  </div>
-</div>
-
 <!-- Header -->
 <header>
   <div class="logo">
@@ -545,9 +663,6 @@
   </div>
   <div class="header-right">
     <span id="book-count"></span>
-    <button id="config-btn" title="Connect Google Sheet">
-      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-    </button>
   </div>
 </header>
 
@@ -587,6 +702,31 @@
   </div>
 </div>
 
+<!-- PDF Side Panel -->
+<div id="panel-overlay"></div>
+<div id="pdf-panel">
+  <div class="panel-header">
+    <div class="panel-title-wrap">
+      <div class="panel-title" id="panel-title">—</div>
+      <div class="panel-title-native" id="panel-title-native"></div>
+      <div class="panel-author" id="panel-author"></div>
+    </div>
+    <div class="panel-actions">
+      <a id="panel-open-tab" href="#" target="_blank" rel="noopener" class="panel-btn" title="Open in full tab">
+        <svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        Full tab
+      </a>
+      <button class="panel-btn close-btn" id="panel-close" title="Close">✕</button>
+    </div>
+  </div>
+  <iframe id="pdf-frame" title="PDF Viewer" allowfullscreen></iframe>
+  <div class="panel-fallback" id="panel-fallback">
+    <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+    <p>This file can't be previewed inline.<br>Click below to open it directly.</p>
+    <a id="fallback-link" href="#" target="_blank" rel="noopener">Open PDF</a>
+  </div>
+</div>
+
 <!-- Main grid -->
 <div class="main">
   <div id="grid">
@@ -599,7 +739,6 @@
 </div>
 
 <script>
-const STORAGE_KEY = 'pdf_lib_sheet';
 const SPINE_COLORS = 8;
 
 let allBooks = [];
@@ -607,41 +746,6 @@ let categories1 = new Set();
 let categories2 = new Set();
 let publishers = new Set();
 let years = new Set();
-
-// ── Config persistence ──
-function getSaved() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; } catch { return {}; }
-}
-function saveConfig(id, name) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify({ id, name }));
-}
-
-// ── Show/hide modal ──
-function openModal() {
-  const saved = getSaved();
-  document.getElementById('sheet-id-input').value = saved.id || '';
-  document.getElementById('sheet-name-input').value = saved.name || '';
-  document.getElementById('config-modal').classList.add('open');
-}
-
-function closeModal() {
-  document.getElementById('config-modal').classList.remove('open');
-}
-
-document.getElementById('config-btn').addEventListener('click', openModal);
-document.getElementById('modal-cancel').addEventListener('click', closeModal);
-document.getElementById('config-modal').addEventListener('click', e => {
-  if (e.target === e.currentTarget) closeModal();
-});
-
-document.getElementById('modal-save').addEventListener('click', () => {
-  const id = document.getElementById('sheet-id-input').value.trim();
-  const name = document.getElementById('sheet-name-input').value.trim() || 'Sheet1';
-  if (!id) { alert('Please enter a Sheet ID.'); return; }
-  saveConfig(id, name);
-  closeModal();
-  fetchSheet(id, name);
-});
 
 // ── Fetch from Google Sheets JSON API ──
 async function fetchSheet(sheetId, sheetName) {
@@ -773,11 +877,10 @@ function renderGrid(books) {
 
   grid.innerHTML = books.map(b => {
     const sc = spineColor(b.cat1);
-    const href = b.url ? b.url : '#';
-    const target = b.url ? 'target="_blank" rel="noopener"' : '';
+    const dataUrl = b.url ? ` data-url="${escHtml(b.url)}"` : '';
 
     return `
-    <a class="book-card" href="${escHtml(href)}" ${target} title="${escHtml(b.title)}">
+    <div class="book-card" ${dataUrl} data-title="${escHtml(b.title)}" data-title1="${escHtml(b.title1||'')}" data-author="${escHtml(b.author||'')}">
       <div class="book-spine spine-${sc}"></div>
       <div class="book-body">
         <div class="book-title-wrap">
@@ -799,7 +902,7 @@ function renderGrid(books) {
         <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
         ${b.url ? 'Open PDF' : 'No link yet'}
       </div>
-    </a>`;
+    </div>`;
   }).join('');
 }
 
@@ -872,15 +975,74 @@ document.getElementById('clear-btn').addEventListener('click', () => {
   applyFilters();
 });
 
-// ── Init ──
-const saved = getSaved();
-if (saved.id) {
-  fetchSheet(saved.id, saved.name || 'Sheet1');
-} else {
-  showEmpty('Welcome to the Library', 'Click the ⚙ gear icon to connect your Google Sheet.');
-  document.getElementById('result-info').textContent = 'No sheet connected';
-  setTimeout(openModal, 600);
+// ── PDF Panel ──
+const panel      = document.getElementById('pdf-panel');
+const overlay    = document.getElementById('panel-overlay');
+const pdfFrame   = document.getElementById('pdf-frame');
+const fallback   = document.getElementById('panel-fallback');
+const panelTitle = document.getElementById('panel-title');
+const panelNative= document.getElementById('panel-title-native');
+const panelAuthor= document.getElementById('panel-author');
+const panelTab   = document.getElementById('panel-open-tab');
+const fallbackLnk= document.getElementById('fallback-link');
+
+function openPanel(url, title, title1, author) {
+  panelTitle.textContent  = title  || 'Untitled';
+  panelNative.textContent = title1 || '';
+  panelAuthor.textContent = author || '';
+  panelTab.href    = url;
+  fallbackLnk.href = url;
+
+  // Show iframe; hide fallback
+  pdfFrame.style.display  = 'block';
+  fallback.style.display  = 'none';
+
+  // Try loading — Terabox & some hosts block iframe; show fallback if it errors
+  pdfFrame.src = url;
+  pdfFrame.onerror = () => showFallback();
+
+  // Fallback timer: if iframe stays blank for 4s, show fallback
+  clearTimeout(panel._timer);
+  panel._timer = setTimeout(() => {
+    try {
+      // If contentDocument is null the iframe was blocked
+      if (!pdfFrame.contentDocument || pdfFrame.contentDocument.body === null) showFallback();
+    } catch(e) { /* cross-origin — assume it loaded */ }
+  }, 4000);
+
+  panel.classList.add('open');
+  overlay.classList.add('open');
+  document.body.classList.add('panel-open');
 }
+
+function showFallback() {
+  pdfFrame.style.display = 'none';
+  fallback.style.display = 'flex';
+}
+
+function closePanel() {
+  panel.classList.remove('open');
+  overlay.classList.remove('open');
+  document.body.classList.remove('panel-open');
+  clearTimeout(panel._timer);
+  setTimeout(() => { pdfFrame.src = ''; }, 300);
+}
+
+document.getElementById('panel-close').addEventListener('click', closePanel);
+overlay.addEventListener('click', closePanel);
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closePanel(); });
+
+// Delegate card clicks
+document.getElementById('grid').addEventListener('click', e => {
+  const card = e.target.closest('.book-card');
+  if (!card) return;
+  const url = card.dataset.url;
+  if (!url) return;
+  openPanel(url, card.dataset.title, card.dataset.title1, card.dataset.author);
+});
+
+// ── Init — Sheet ID is hardcoded, loads automatically ──
+fetchSheet('1It2l1Bhk5qAUxCFH7AnKG_raFsaXh5D_gPpusj9QGjI', 'Sheet1');
 </script>
 </body>
 </html>
